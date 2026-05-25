@@ -44,6 +44,9 @@ export default function HomePage() {
               <div className="text-sm text-[var(--color-ash)] mt-1">System Health (TCR)</div>
             </div>
           </div>
+          <div className="mt-8 text-center text-xs text-[var(--color-ash)]">
+            MezoBorrowConnector: 0xb06EeC6848B864716824e9fd8Bc1a7914EF84bc3
+          </div>
         </div>
       </section>
 
