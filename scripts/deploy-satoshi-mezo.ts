@@ -2,7 +2,7 @@
  * SatoshiVentures — Mezo testnet (matsnet) deployment script
  *
  * Usage:
- *   npx hardhat run scripts/deploy-satoshi-mezo.ts --network mezoTestnet
+ *   MEZO_TESTNET_KEY=0x... npx hardhat run scripts/deploy-satoshi-mezo.ts --network mezoTestnet
  *
  * Environment overrides (any subset; falls back to the verified matsnet
  * addresses pulled from `mezo-org/musd@HEAD`):
@@ -20,7 +20,9 @@
  *   (YieldOptimizer is deployed per-FundingPool — see deploy-yield-optimizer.ts)
  */
 
-import { network } from "hardhat";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import * as fs from "fs";
+import * as path from "path";
 
 // ── Mezo testnet (matsnet) — verified against mezo-org/musd repo ────────────
 const MEZO_ADDRESSES = {
@@ -40,11 +42,8 @@ function pick(envKey: string, fallback: string): string {
   return v && v.length > 0 ? v : fallback;
 }
 
-async function main() {
-  // Hardhat v3 network connection (matches the pattern in scripts/send-op-tx.ts).
-  const conn = await (network as any).connect();
-  const ethers = conn.ethers;
-
+async function main(hre: HardhatRuntimeEnvironment) {
+  const { ethers } = hre;
   const [deployer] = await ethers.getSigners();
   const chainId = (await ethers.provider.getNetwork()).chainId;
 
@@ -62,7 +61,7 @@ async function main() {
 
   const addrs = {
     musd:               pick("MEZO_MUSD",            MEZO_ADDRESSES.MUSD),
-    borrowerOperations: pick("MEZO_BORROWER_OPS",    MEZO_ADDRESSES.BorrowerOperations),
+    borrowerOperations: pick("MEZO_BORROWER_OPS",   MEZO_ADDRESSES.BorrowerOperations),
     troveManager:       pick("MEZO_TROVE_MANAGER",   MEZO_ADDRESSES.TroveManager),
     priceFeed:          pick("MEZO_PRICE_FEED",      MEZO_ADDRESSES.PriceFeed),
     sortedTroves:       pick("MEZO_SORTED_TROVES",   MEZO_ADDRESSES.SortedTroves),
@@ -111,8 +110,25 @@ async function main() {
   console.log("       Use scripts/deploy-yield-optimizer.ts or call YieldOptimizer constructor");
   console.log("       directly with (musd, vault, fundingPool, ideaDAO).");
 
+  // ── Save deployment addresses ──────────────────────────────────────────
+  const deploymentAddrs = {
+    chainId: Number(chainId),
+    network: "mezoTestnet",
+    timestamp: new Date().toISOString(),
+    deployer: deployer.address,
+    contracts: {
+      MezoBorrowConnector: connectorAddr,
+      CollateralTracker: trackerAddr,
+    },
+    mezoAddresses: addrs,
+  };
+
+  const deployedFile = path.join(__dirname, "..", "deployed-addresses.json");
+  fs.writeFileSync(deployedFile, JSON.stringify(deploymentAddrs, null, 2));
+  console.log(`\n     · Deployment addresses saved to: ${deployedFile}`);
+
   console.log("\n═══════════════════════════════════════════════════════════════");
-  console.log("Summary (paste into frontend .env.local):");
+  console.log("Summary:");
   console.log(`  NEXT_PUBLIC_MEZO_BORROW_CONNECTOR=${connectorAddr}`);
   console.log(`  NEXT_PUBLIC_COLLATERAL_TRACKER=${trackerAddr}`);
   console.log(`  NEXT_PUBLIC_MUSD_TOKEN=${addrs.musd}`);
@@ -120,7 +136,6 @@ async function main() {
   console.log("═══════════════════════════════════════════════════════════════\n");
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exitCode = 1;
-});
+export default async (hre: HardhatRuntimeEnvironment) => {
+  await main(hre);
+};

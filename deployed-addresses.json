@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-05-25T22:37:40.185Z",
+  "network": "mezoTestnet",
+  "chainId": 31611,
+  "deployer": "0x0CFAb2d9C9F132389b3aA05FC019Ca4F2E19D021",
+  "contracts": {
+    "MezoBorrowConnector": "0xb06EeC6848B864716824e9fd8Bc1a7914EF84bc3",
+    "CollateralTracker": "0x0043D1c50dfc975dc4F2610345Db3700F837FA2e"
+  },
+  "mezoAddresses": {
+    "MUSD": "0x118917a40FAF1CD7a13dB0Ef56C86De7973Ac503",
+    "BorrowerOperations": "0xCdF7028ceAB81fA0C6971208e83fa7872994beE5",
+    "TroveManager": "0xE47c80e8c23f6B4A1aE41c34837a0599D5D16bb0",
+    "PriceFeed": "0x86bCF0841622a5dAC14A313a15f96A95421b9366",
+    "SortedTroves": "0x722E4D24FD6Ff8b0AC679450F3D91294607268fA",
+    "HintHelpers": "0x4e4cBA3779d56386ED43631b4dCD6d8EacEcBCF6",
+    "StabilityPool": "0x1CCA7E410eE41739792eA0A24e00349Dd247680e"
+  }
+}
