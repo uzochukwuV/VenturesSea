@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-05-25T23:26:33.070Z",
+  "network": "mezoTestnet",
+  "chainId": 31611,
+  "deployer": "0x0CFAb2d9C9F132389b3aA05FC019Ca4F2E19D021",
+  "contracts": {
+    "ProtocolTreasury": "0x43Ca91C82dB992F36b9843a0c36d23FaA942F86f",
+    "ProtocolMarket": "0x9890760F3e87F0BeD4110F2729224e69A4Df797d",
+    "IdeaRegistry": "0x4E752BAb69b52c99721Afb3cAe4922C4298a7F9E",
+    "IdeaDAO": "0x5F1e5b50667C92233F5dD4b446D14713561EFed2",
+    "FundingPool": "0xB4E40F40460BC234837973e02c1A21d0747E5828",
+    "IdeaToken": "0x90C3Aa2Bf8A54078B522CDDf4092328F879f2dd7",
+    "BuilderAgreement": "0xC8bdc8Afaf5f7482F2b9Ebb62ef1f1a1792F50dd",
+    "Milestone": "0x7adB35D053ef2636bf79A0af2E751592fA6D93C4",
+    "RevenueReport": "0x9E5176E8477D5f350939d32430B0DbeeCe981897",
+    "IdeaFactory": "0x59d147AfE65872Af90fE2281f9E3b182088F0D37"
+  }
+}

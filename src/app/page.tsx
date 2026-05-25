@@ -45,7 +45,8 @@ export default function HomePage() {
             </div>
           </div>
           <div className="mt-8 text-center text-xs text-[var(--color-ash)]">
-            MezoBorrowConnector: 0xb06EeC6848B864716824e9fd8Bc1a7914EF84bc3
+            <div>MezoBorrowConnector: 0xb06EeC6848B864716824e9fd8Bc1a7914EF84bc3</div>
+            <div>IdeaFactory: 0x59d147AfE65872Af90fE2281f9E3b182088F0D37</div>
           </div>
         </div>
       </section>
