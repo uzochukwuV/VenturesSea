@@ -9,6 +9,21 @@ import "./IIdeaFi.sol";
 // ---------------------------------------------------------------------------
 // FundingPool
 // ---------------------------------------------------------------------------
+// Minimal SatoshiVentures hooks (collateral tracker + yield optimizer) are
+// integrated below. Every hook is gated on a non-zero address, so behavior
+// is identical to the pre-SatoshiVentures FundingPool when the DAO has not
+// wired in the extensions. Existing test suites pass unchanged.
+// ---------------------------------------------------------------------------
+
+interface ICollateralTrackerWriter {
+    function trackDeposit(address investor, uint256 amount) external;
+    function trackWithdrawal(address investor, uint256 amount) external;
+}
+
+interface IYieldOptimizerHook {
+    function autoDeposit() external;
+    function withdrawForPayout(uint256 amount) external;
+}
 
 contract FundingPool is Initializable {
     using SafeERC20 for IERC20;
@@ -34,6 +49,17 @@ contract FundingPool is Initializable {
     uint256 public builderAllocationPct;
 
     // -----------------------------------------------------------------------
+    // SatoshiVentures extensions (optional)
+    // -----------------------------------------------------------------------
+
+    /// @notice Off-by-default collateral tracker for per-user portfolio health.
+    ///         Set via setSatoshiHooks() by the DAO. Address(0) ⇒ no tracking.
+    address public collateralTracker;
+    /// @notice Off-by-default yield optimizer that auto-deposits idle MUSD.
+    ///         Address(0) ⇒ no yield routing.
+    address public yieldOptimizer;
+
+    // -----------------------------------------------------------------------
     // State
     // -----------------------------------------------------------------------
 
@@ -53,6 +79,8 @@ contract FundingPool is Initializable {
     event BuilderFundsReleased(address indexed builder, uint256 gross, uint256 fee, uint256 net);
     event EmergencyRefundEnabled();
     event RefundClaimed(address indexed investor, uint256 amount);
+    event SatoshiHooksSet(address collateralTracker, address yieldOptimizer);
+    event YieldPullForwarded(address indexed yieldOptimizer, uint256 amount);
 
     // -----------------------------------------------------------------------
     // Modifiers
@@ -182,6 +210,16 @@ contract FundingPool is Initializable {
         ideaToken.mint(msg.sender, net);
 
         emit Deposited(msg.sender, amount, fee, net);
+
+        // ── SatoshiVentures hooks (no-op when unset) ────────────────────
+        if (collateralTracker != address(0)) {
+            ICollateralTrackerWriter(collateralTracker).trackDeposit(msg.sender, net);
+        }
+        if (yieldOptimizer != address(0) && !isLocked) {
+            // Best-effort sweep. The optimizer is allowed to silently no-op
+            // (e.g. below threshold) — we never let it block a deposit.
+            try IYieldOptimizerHook(yieldOptimizer).autoDeposit() {} catch {}
+        }
     }
 
     /// @notice Withdraw previously deposited MUSD (only while pool is unlocked).
@@ -203,10 +241,17 @@ contract FundingPool is Initializable {
         deposits[msg.sender] -= amount;
         totalDeposited       -= amount;
 
+        // SatoshiVentures: ensure we have enough liquid MUSD to pay the user.
+        _ensureLiquidity(amount);
+
         // Refund investor
         musd.safeTransfer(msg.sender, amount);
 
         emit Withdrawn(msg.sender, amount);
+
+        if (collateralTracker != address(0)) {
+            ICollateralTrackerWriter(collateralTracker).trackWithdrawal(msg.sender, amount);
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -228,6 +273,9 @@ contract FundingPool is Initializable {
 
         uint256 fee = (amount * PROTOCOL_FEE_BPS) / 10_000;
         uint256 net = amount - fee;
+
+        // SatoshiVentures: pull funds back from the yield vault if needed.
+        _ensureLiquidity(amount);
 
         musd.safeTransfer(protocolTreasury, fee);
         musd.safeTransfer(builder, net);
@@ -252,8 +300,56 @@ contract FundingPool is Initializable {
         deposits[msg.sender] = 0;
         totalDeposited -= amount;
 
+        // SatoshiVentures: drain the yield vault if needed for the refund.
+        _ensureLiquidity(amount);
+
         musd.safeTransfer(msg.sender, amount);
 
         emit RefundClaimed(msg.sender, amount);
+    }
+
+    // -----------------------------------------------------------------------
+    // SatoshiVentures hook wiring
+    // -----------------------------------------------------------------------
+
+    /// @notice Wire the SatoshiVentures collateral tracker / yield optimizer.
+    ///         Either address may be zero to disable that hook. DAO-only.
+    function setSatoshiHooks(address _collateralTracker, address _yieldOptimizer)
+        external
+        onlyDAO
+    {
+        collateralTracker = _collateralTracker;
+        yieldOptimizer    = _yieldOptimizer;
+        emit SatoshiHooksSet(_collateralTracker, _yieldOptimizer);
+    }
+
+    /// @notice Called by the wired yield optimizer to pull idle MUSD into the
+    ///         underlying vault. Reverts if the optimizer is not set or the
+    ///         pool is locked (so locked funds remain on-pool).
+    function pullForYield(uint256 amount) external {
+        require(msg.sender == yieldOptimizer, "FundingPool: not yield optimizer");
+        require(!isLocked, "FundingPool: pool is locked");
+        require(amount > 0, "FundingPool: zero amount");
+        musd.safeTransfer(yieldOptimizer, amount);
+        emit YieldPullForwarded(yieldOptimizer, amount);
+    }
+
+    // -----------------------------------------------------------------------
+    // Internal helpers
+    // -----------------------------------------------------------------------
+
+    /// @dev Top-up the pool's liquid MUSD balance from the yield vault if
+    ///      `needed` is more than what we hold. No-op if the optimizer is
+    ///      unset or already covers the gap.
+    function _ensureLiquidity(uint256 needed) internal {
+        if (yieldOptimizer == address(0)) return;
+        uint256 idle = musd.balanceOf(address(this));
+        if (idle >= needed) return;
+        uint256 shortfall = needed - idle;
+        try IYieldOptimizerHook(yieldOptimizer).withdrawForPayout(shortfall) {} catch {
+            // Optimizer may be locked / lack balance / be paused. We don't
+            // block the user — the subsequent safeTransfer will revert with
+            // ERC20InsufficientBalance if we truly cannot pay.
+        }
     }
 }

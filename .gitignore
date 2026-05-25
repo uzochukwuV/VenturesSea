@@ -48,3 +48,4 @@ node.log
 .idea/
 *.swp
 *.swo
+.env.testnet
