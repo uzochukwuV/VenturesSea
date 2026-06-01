@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button, Card, Badge, Avatar } from '@/components/ui';
+import { CreateIdeaPanel, DeploymentStatusPanel } from '@/components/contracts/IdeaFiPanels';
 
 interface Application {
   id: string;
@@ -138,6 +139,11 @@ export default function AdminPage() {
           <p className="text-[var(--color-graphite)]">
             Review applications, shortlist builders, and select winners.
           </p>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="mb-8 space-y-6">
+          <DeploymentStatusPanel />
+          <CreateIdeaPanel />
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}

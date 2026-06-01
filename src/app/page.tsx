@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { DeploymentStatusPanel, UserFlowCards } from '@/components/contracts/IdeaFiPanels';
 
 export default function HomePage() {
   return (
@@ -43,6 +44,15 @@ export default function HomePage() {
               <div className="text-sm text-[var(--color-ash)] mt-1">Builders Connected</div>
             </div>
           </div>
+        </div>
+      </section>
+
+
+      {/* Protocol Integration */}
+      <section className="py-[100px]">
+        <div className="max-w-[1200px] mx-auto px-8 space-y-8">
+          <DeploymentStatusPanel />
+          <UserFlowCards />
         </div>
       </section>
 

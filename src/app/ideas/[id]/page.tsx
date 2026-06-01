@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button, Card, Badge, ProgressBar, Avatar } from '@/components/ui';
+import { BuilderDeliveryPanel, GovernanceActionPanel, IdeaOnChainPanel, InvestorActionPanel } from '@/components/contracts/IdeaFiPanels';
 
 interface Idea {
   id: string;
@@ -33,7 +34,7 @@ export default function IdeaDetailPage() {
   const [idea, setIdea] = useState<Idea | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'applications' | 'milestones'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'invest' | 'govern' | 'build' | 'applications' | 'milestones'>('overview');
 
   useEffect(() => {
     // Mock data - in production, fetch from Supabase
@@ -167,6 +168,9 @@ export default function IdeaDetailPage() {
               <div className="flex items-center gap-1 border-b border-[var(--color-stone-surface)]">
                 {[
                   { key: 'overview', label: 'Overview' },
+                  { key: 'invest', label: 'Invest' },
+                  { key: 'govern', label: 'Govern' },
+                  { key: 'build', label: 'Build' },
                   { key: 'applications', label: `Applications (${applications.length})` },
                   { key: 'milestones', label: 'Milestones' },
                 ].map((tab) => (
@@ -228,6 +232,28 @@ export default function IdeaDetailPage() {
                       </div>
                     </div>
                   </Card>
+                </motion.div>
+              )}
+
+
+              {activeTab === 'invest' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                  <IdeaOnChainPanel ideaId={params.id as string} />
+                  <InvestorActionPanel ideaId={params.id as string} />
+                </motion.div>
+              )}
+
+              {activeTab === 'govern' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                  <IdeaOnChainPanel ideaId={params.id as string} />
+                  <GovernanceActionPanel ideaId={params.id as string} />
+                </motion.div>
+              )}
+
+              {activeTab === 'build' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                  <IdeaOnChainPanel ideaId={params.id as string} />
+                  <BuilderDeliveryPanel ideaId={params.id as string} />
                 </motion.div>
               )}
 
