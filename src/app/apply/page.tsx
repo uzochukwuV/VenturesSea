@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button, Input, Textarea, Card } from '@/components/ui';
+import { DeploymentStatusPanel } from '@/components/contracts/IdeaFiPanels';
 import { supabase } from '@/lib/supabase';
 
 interface FormData {
@@ -257,6 +258,10 @@ export default function ApplyPage() {
               </div>
             </form>
           </Card>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.35 }} className="mt-12">
+          <DeploymentStatusPanel />
         </motion.div>
 
         {/* Info Section */}

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Button, Card, Badge } from '@/components/ui';
+import { CreateIdeaPanel, DeploymentStatusPanel } from '@/components/contracts/IdeaFiPanels';
 import { supabase, fetchIdeas } from '@/lib/supabase';
 
 interface Idea {
@@ -200,7 +201,15 @@ export default function IdeasPage() {
             </div>
           </motion.div>
 
-          {/* Ideas Grid */}
+    
+      <section className="py-12">
+        <div className="max-w-[1200px] mx-auto px-8 space-y-6">
+          <DeploymentStatusPanel />
+          <CreateIdeaPanel />
+        </div>
+      </section>
+
+      {/* Ideas Grid */}
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {[...Array(6)].map((_, i) => (
@@ -300,7 +309,7 @@ export default function IdeasPage() {
           <p className="text-[var(--color-graphite)] mb-6 max-w-lg mx-auto">
             Submit your project idea and connect with talented builders from our community.
           </p>
-          <Link href="/submit">
+          <Link href="/ideas">
             <Button variant="primary" size="lg">
               Submit Your Idea
             </Button>

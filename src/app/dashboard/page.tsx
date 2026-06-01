@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Button, Card, Badge, ProgressBar } from '@/components/ui';
+import { Button, Card, Badge, ProgressBar, Input } from '@/components/ui';
+import { BuilderDeliveryPanel, GovernanceActionPanel, IdeaOnChainPanel, InvestorActionPanel } from '@/components/contracts/IdeaFiPanels';
 
 interface DashboardData {
   ideas_invested: { id: string; title: string; amount: string; status: string }[];
@@ -15,6 +16,7 @@ export default function DashboardPage() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedIdeaId, setSelectedIdeaId] = useState('1');
 
   useEffect(() => {
     // Check for wallet connection
@@ -166,6 +168,33 @@ export default function DashboardPage() {
               </div>
             </div>
           </Card>
+        </motion.div>
+
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-8 space-y-6"
+        >
+          <Card>
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-ash)]">Connected contract workspace</p>
+                <h2 className="mt-2 text-2xl font-semibold text-[var(--color-charcoal-primary)]">Investor and developer operations</h2>
+                <p className="mt-2 text-sm text-[var(--color-graphite)]">Pick an IdeaRegistry id to manage your funding, DAO votes, builder deliverables, and revenue acknowledgements in one place.</p>
+              </div>
+              <div className="w-full md:w-48">
+                <Input label="Idea id" value={selectedIdeaId} onChange={(event) => setSelectedIdeaId(event.target.value)} />
+              </div>
+            </div>
+          </Card>
+          <IdeaOnChainPanel ideaId={selectedIdeaId} />
+          <div className="grid gap-6 xl:grid-cols-2">
+            <InvestorActionPanel ideaId={selectedIdeaId} />
+            <GovernanceActionPanel ideaId={selectedIdeaId} />
+          </div>
+          <BuilderDeliveryPanel ideaId={selectedIdeaId} />
         </motion.div>
 
         {/* Main Content */}
